@@ -12,6 +12,7 @@ import LandingPage from './pages/LandingPage';
 
 const HowItWorksPage = lazy(() => import('./pages/HowItWorksPage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
+const CateringPage = lazy(() => import('./pages/CateringPage'));
 const DiscoverPage = lazy(() => import('./pages/DiscoverPage'));
 const RestaurantPage = lazy(() => import('./pages/RestaurantPage'));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
@@ -39,6 +40,7 @@ export default function App() {
         {/* Public marketing pages */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/how-it-works" element={<HowItWorksPage />} />
+        <Route path="/catering" element={<CateringPage />} />
         <Route path="/signin" element={<AuthPage mode="signin" />} />
         <Route path="/signup" element={<AuthPage mode="signup" />} />
 

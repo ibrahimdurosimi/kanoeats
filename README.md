@@ -27,8 +27,12 @@ immediately. Accounts, orders and payments need the setup below.
 Enables accounts, saved addresses, orders and the kitchen dashboard.
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. In the SQL editor, run `supabase/schema.sql`, then `supabase/seed.sql`.
-   Both are re-runnable — the seed updates existing rows rather than
+2. In the SQL editor, run in order:
+   - `supabase/schema.sql`
+   - `supabase/migrations/002_reviews_catering_realtime.sql`
+   - `supabase/seed.sql`
+
+   All three are re-runnable — the seed updates existing rows rather than
    duplicating them.
 3. Copy `.env.example` to `.env.local` and fill in:
 
@@ -235,11 +239,36 @@ clear error instead of pretending to succeed.
 
 ---
 
+## How a few things work
+
+**Ratings are computed in the database.** A trigger on `reviews` recalculates
+`restaurants.rating` and `review_count` on every insert, update and delete.
+Doing it in Postgres rather than the client means every reader sees the same
+number and no client can write an arbitrary rating onto a restaurant row.
+
+**A review is tied to an order, not to a person.** One review per order,
+enforced by a unique constraint, and the RLS policy only permits it when that
+order belongs to you *and* has status `delivered`. That is what stops a rating
+being written by someone who never ordered.
+
+**Order updates arrive over realtime.** `useRealtimeOrder` subscribes to the
+`orders` table; RLS applies to realtime too, so a customer receives events only
+for their own orders and a kitchen only for orders placed with it. A slow
+60-second poll stays underneath as a safety net, because a socket that drops
+silently on a patchy mobile connection is worse than one update arriving late.
+`orders` is set to `replica identity full` so updates carry the changed row,
+not just its primary key.
+
+**Catering enquiries do not require an account.** The insert policy is open;
+the select policy is not, so only the person who submitted a request can read
+it back.
+
+---
+
 ## Not yet built
 
-- Realtime order updates (tracking currently polls every 20s)
-- Kitchen owner self-service menu editing
 - Rider app and live GPS tracking
-- Ratings and reviews written by customers
 - Push notifications
-- Automated tests
+- Admin view for catering requests (they land in the table; no UI yet)
+- Owner self-service for restaurant details — only the menu is editable
+- Component-level tests beyond the render smoke test

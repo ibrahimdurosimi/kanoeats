@@ -1,12 +1,17 @@
-import { ClipboardList, RotateCcw } from 'lucide-react';
+import { ClipboardList, RotateCcw, Star } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import DishArt, { artFor } from '../components/DishArt';
+import ReviewModal from '../components/ReviewModal';
+import StarRating from '../components/StarRating';
+import { useAuth } from '../context/AuthContext';
 import { useOrders } from '../hooks/useOrders';
+import { fetchMyReviews } from '../lib/api';
 import { useRestaurants } from '../hooks/useRestaurants';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { formatNaira, formatRelative } from '../lib/format';
-import type { OrderStatus } from '../types';
+import type { Order, OrderStatus, Review } from '../types';
 
 const STATUS_STYLES: Record<OrderStatus, string> = {
   pending: 'bg-[#FBEFD6] text-[#7A5510]',
@@ -28,6 +33,16 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 
 export default function OrdersPage() {
   const { orders, loading } = useOrders();
+  const { user } = useAuth();
+
+  // Keyed by order id: a review belongs to one order, and the key decides
+  // whether the button reads "Leave a review" or "Edit review".
+  const [myReviews, setMyReviews] = useState<Record<string, Review>>({});
+  const [reviewing, setReviewing] = useState<Order | null>(null);
+
+  useEffect(() => {
+    if (user) void fetchMyReviews(user.id).then(setMyReviews);
+  }, [user]);
   const { restaurants } = useRestaurants();
   const { addItem, openCart } = useCart();
   const { toast } = useToast();
@@ -167,6 +182,24 @@ export default function OrdersPage() {
                   >
                     Track order
                   </Link>
+                  {order.status === 'delivered' && (
+                    <button
+                      onClick={() => setReviewing(order)}
+                      className="flex items-center gap-1.5 rounded-full border-[1.5px] border-[#E4DACA] px-4 py-2 text-[13px] font-semibold transition hover:border-[#E9A93A]"
+                    >
+                      {myReviews[order.id] ? (
+                        <>
+                          <StarRating value={myReviews[order.id].rating} size={13} />
+                          Edit review
+                        </>
+                      ) : (
+                        <>
+                          <Star size={14} className="text-[#E9A93A]" />
+                          Leave a review
+                        </>
+                      )}
+                    </button>
+                  )}
                   <button
                     onClick={() => reorder(order.id)}
                     className="flex items-center gap-1.5 rounded-full bg-[#E9A93A] px-4 py-2 text-[13px] font-bold text-[#3A2A08] shadow-[0_3px_0_#C68A22] transition hover:-translate-y-0.5"
@@ -180,6 +213,13 @@ export default function OrdersPage() {
           ))}
         </div>
       )}
+
+      <ReviewModal
+        order={reviewing}
+        existing={reviewing ? myReviews[reviewing.id] : undefined}
+        onClose={() => setReviewing(null)}
+        onSaved={(review) => setMyReviews((prev) => ({ ...prev, [review.orderId]: review }))}
+      />
     </div>
   );
 }

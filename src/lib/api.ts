@@ -11,11 +11,15 @@ import { RESTAURANTS as LOCAL_RESTAURANTS } from '../data';
 import type {
   Address,
   CartItem,
+  CateringRequestInput,
+  Dish,
+  DishInput,
   Order,
   OrderStatus,
   PaymentMethod,
   Profile,
   RestaurantWithMenu,
+  Review,
 } from '../types';
 import { IS_SUPABASE_CONFIGURED } from './config';
 import { requireSupabase, supabase } from './supabase';
@@ -49,6 +53,7 @@ interface DishRow {
   category: string;
   art_key: string;
   spice_level: number;
+  is_available?: boolean;
 }
 
 function mapRestaurant(r: RestaurantRow, dishes: DishRow[]): RestaurantWithMenu {
@@ -76,6 +81,7 @@ function mapRestaurant(r: RestaurantRow, dishes: DishRow[]): RestaurantWithMenu 
         category: d.category as RestaurantWithMenu['dishes'][number]['category'],
         artKey: (d.art_key as ArtKey) ?? 'kitchen',
         spiceLevel: d.spice_level ?? 0,
+        isAvailable: d.is_available ?? true,
       })),
   };
 }
@@ -369,5 +375,215 @@ function mapOrderRow(row: any): Order {
       quantity: i.quantity,
       options: i.options ?? {},
     })),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Reviews
+// ---------------------------------------------------------------------------
+
+export async function fetchReviews(restaurantId: string): Promise<Review[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*, profiles(full_name)')
+    .eq('restaurant_id', restaurantId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error || !data) {
+    if (error) console.warn('[kanoeats] Could not load reviews:', error.message);
+    return [];
+  }
+  return data.map(mapReviewRow);
+}
+
+/** Reviews the signed-in user has written, keyed by order id. */
+export async function fetchMyReviews(userId: string): Promise<Record<string, Review>> {
+  if (!supabase) return {};
+  const { data, error } = await supabase.from('reviews').select('*').eq('user_id', userId);
+  if (error || !data) return {};
+  return Object.fromEntries(data.map((r) => [r.order_id, mapReviewRow(r)]));
+}
+
+export async function submitReview(input: {
+  orderId: string;
+  restaurantId: string;
+  userId: string;
+  rating: number;
+  comment: string;
+}): Promise<Review> {
+  const client = requireSupabase();
+
+  // One review per order. Upsert so editing is the same call as creating and
+  // a double submit cannot produce two rows.
+  const { data, error } = await client
+    .from('reviews')
+    .upsert(
+      {
+        order_id: input.orderId,
+        restaurant_id: input.restaurantId,
+        user_id: input.userId,
+        rating: input.rating,
+        comment: input.comment.trim(),
+      },
+      { onConflict: 'order_id' },
+    )
+    .select()
+    .single();
+
+  if (error || !data) {
+    throw new Error(error?.message ?? 'Could not save your review');
+  }
+  return mapReviewRow(data);
+}
+
+export async function deleteReview(id: string): Promise<void> {
+  const client = requireSupabase();
+  const { error } = await client.from('reviews').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+// ---------------------------------------------------------------------------
+// Catering
+// ---------------------------------------------------------------------------
+
+export async function submitCateringRequest(
+  input: CateringRequestInput,
+  userId: string | null,
+): Promise<void> {
+  const client = requireSupabase();
+  const { error } = await client.from('catering_requests').insert({
+    user_id: userId,
+    full_name: input.fullName.trim(),
+    email: input.email.trim(),
+    phone: input.phone.trim(),
+    occasion: input.occasion,
+    event_date: input.eventDate || null,
+    guest_count: input.guestCount,
+    city: input.city,
+    notes: input.notes.trim(),
+  });
+  if (error) throw new Error(error.message);
+}
+
+// ---------------------------------------------------------------------------
+// Owner menu management
+// ---------------------------------------------------------------------------
+
+/** The restaurant this user owns, if any. */
+export async function fetchOwnedRestaurant(userId: string): Promise<RestaurantWithMenu | null> {
+  if (!supabase) return null;
+
+  const { data: r, error } = await supabase
+    .from('restaurants')
+    .select('*')
+    .eq('owner_id', userId)
+    .maybeSingle();
+
+  if (error || !r) return null;
+
+  // Unavailable dishes are included here: the owner needs to see and re-enable
+  // them, unlike a customer browsing the menu.
+  const { data: dishes } = await supabase
+    .from('dishes')
+    .select('*')
+    .eq('restaurant_id', r.id)
+    .order('category');
+
+  return mapRestaurant(r as RestaurantRow, (dishes ?? []) as DishRow[]);
+}
+
+/** Slug built from the dish name; the id is the primary key, so it must be unique. */
+function dishId(restaurantId: string, name: string): string {
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 40);
+  return `${restaurantId}-${slug}-${Math.random().toString(36).slice(2, 6)}`;
+}
+
+export async function createDish(restaurantId: string, input: DishInput): Promise<Dish> {
+  const client = requireSupabase();
+  const { data, error } = await client
+    .from('dishes')
+    .insert({
+      id: dishId(restaurantId, input.name),
+      restaurant_id: restaurantId,
+      name: input.name.trim(),
+      description: input.description.trim(),
+      price: input.price,
+      category: input.category,
+      art_key: input.artKey,
+      spice_level: input.spiceLevel,
+      is_available: input.isAvailable,
+    })
+    .select()
+    .single();
+
+  if (error || !data) throw new Error(error?.message ?? 'Could not add the dish');
+  return mapDishRow(data as DishRow);
+}
+
+export async function updateDish(id: string, input: Partial<DishInput>): Promise<void> {
+  const client = requireSupabase();
+  const { error } = await client
+    .from('dishes')
+    .update({
+      ...(input.name !== undefined ? { name: input.name.trim() } : {}),
+      ...(input.description !== undefined ? { description: input.description.trim() } : {}),
+      ...(input.price !== undefined ? { price: input.price } : {}),
+      ...(input.category !== undefined ? { category: input.category } : {}),
+      ...(input.artKey !== undefined ? { art_key: input.artKey } : {}),
+      ...(input.spiceLevel !== undefined ? { spice_level: input.spiceLevel } : {}),
+      ...(input.isAvailable !== undefined ? { is_available: input.isAvailable } : {}),
+    })
+    .eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteDish(id: string): Promise<void> {
+  const client = requireSupabase();
+  const { error } = await client.from('dishes').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/** Orders placed with a given restaurant — the kitchen queue. */
+export async function fetchRestaurantOrders(restaurantId: string): Promise<Order[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*, order_items(*), restaurants(name)')
+    .eq('restaurant_id', restaurantId)
+    .order('created_at', { ascending: false });
+
+  if (error || !data) return [];
+  return data.map(mapOrderRow);
+}
+
+function mapDishRow(d: DishRow): Dish {
+  return {
+    id: d.id,
+    name: d.name,
+    description: d.description,
+    price: d.price,
+    category: d.category as Dish['category'],
+    artKey: (d.art_key as ArtKey) ?? 'kitchen',
+    spiceLevel: d.spice_level ?? 0,
+    isAvailable: d.is_available ?? true,
+  };
+}
+
+function mapReviewRow(row: any): Review {
+  return {
+    id: row.id,
+    orderId: row.order_id,
+    restaurantId: row.restaurant_id,
+    userId: row.user_id,
+    rating: row.rating,
+    comment: row.comment ?? '',
+    createdAt: row.created_at,
+    authorName: row.profiles?.full_name || undefined,
   };
 }

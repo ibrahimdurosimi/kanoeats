@@ -9,9 +9,10 @@ import {
   PackageCheck,
   XCircle,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import DishArt from '../components/DishArt';
+import { useRealtimeOrder } from '../hooks/useRealtimeOrder';
 import { fetchOrderByReference } from '../lib/api';
 import { formatNaira, formatOrderDate } from '../lib/format';
 import type { Order, OrderStatus } from '../types';
@@ -39,27 +40,24 @@ export default function OrderTrackingPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!reference) return;
-    let active = true;
-
-    const load = async () => {
-      const result = await fetchOrderByReference(reference);
-      if (active) {
-        setOrder(result);
-        setLoading(false);
-      }
-    };
-
-    void load();
-    // Poll while the order is in flight. Realtime would be better, but polling
-    // is resilient on a patchy mobile connection and costs little at this rate.
-    const timer = setInterval(load, 20000);
-    return () => {
-      active = false;
-      clearInterval(timer);
-    };
+    const result = await fetchOrderByReference(reference);
+    setOrder(result);
+    setLoading(false);
   }, [reference]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  // Status changes arrive over realtime; the hook keeps a slow poll underneath
+  // in case the socket drops on a patchy connection.
+  useRealtimeOrder(
+    order?.id ?? null,
+    (patch) => setOrder((prev) => (prev ? { ...prev, ...patch } : prev)),
+    load,
+  );
 
   if (loading) {
     return (

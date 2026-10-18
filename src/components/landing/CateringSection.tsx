@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import DishArt from '../DishArt';
 import { Calendar, Users, HeartHandshake } from 'lucide-react';
 
@@ -44,9 +45,12 @@ export default function CateringSection() {
             </div>
           </div>
           
-          <button className="mt-4 px-8 py-4 bg-white text-[#dfaf27] hover:bg-gray-50 rounded-full font-black text-sm shadow-xl transition-transform hover:-translate-y-1">
+          <Link
+            to="/catering"
+            className="mt-4 inline-block px-8 py-4 bg-white text-[#dfaf27] hover:bg-gray-50 rounded-full font-black text-sm shadow-xl transition-transform hover:-translate-y-1"
+          >
             Request a Catering Quote
-          </button>
+          </Link>
         </div>
         
         <div className="relative h-[400px] lg:h-[550px] w-full rounded-[40px] overflow-hidden shadow-2xl border-4 border-white/20">
