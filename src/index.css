@@ -1,35 +1,83 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap');
-@import "tailwindcss";
+@import 'tailwindcss';
 
+/**
+ * Design tokens.
+ *
+ * Fonts are loaded via <link> in index.html rather than @import here — an
+ * @import inside CSS blocks rendering until it resolves, which is noticeably
+ * worse on a slow mobile connection.
+ */
 @theme {
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Fraunces", serif;
-  
-  --color-brand-terracotta: #c64c38;
-  --color-brand-saffron: #f2a640;
-  --color-brand-charcoal: #2a2b2a;
-  --color-brand-forest: #1e3f32;
-  --color-brand-sand: #f5f0e6;
-  --color-brand-sand-dark: #e8dfd5;
-  
-  --color-kanoeats-primary: var(--color-brand-terracotta);
-  --color-kanoeats-bg: var(--color-brand-sand);
+  --font-sans: 'Archivo', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+
+  /* Brand palette */
+  --color-arewa-green-900: #0a2e24;
+  --color-arewa-green-800: #0f4132;
+  --color-arewa-green-700: #166049;
+  --color-arewa-green-100: #ddebe3;
+  --color-arewa-gold: #e9a93a;
+  --color-arewa-gold-soft: #f6ce7c;
+  --color-arewa-gold-100: #fbefd6;
+  --color-arewa-clay: #df5f49;
+  --color-arewa-clay-100: #fbe4de;
+  --color-arewa-cream: #faf5ec;
+  --color-arewa-cream-2: #f2e8d7;
+  --color-arewa-paper: #fffdf8;
+  --color-arewa-ink: #14201b;
+  --color-arewa-muted: #6c7c73;
+  --color-arewa-line: #e4daca;
 }
 
-/* Custom scrollbar to keep layout clean */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-arewa-cream);
+  color: var(--color-arewa-ink);
+  -webkit-font-smoothing: antialiased;
+  /* Horizontal overflow was clipping cards off-screen on mobile. */
+  overflow-x: hidden;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-brand-sand-dark);
+  background: var(--color-arewa-line);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #d4c0b4;
 }
-.hide-scrollbar::-webkit-scrollbar { display: none; } 
-.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Horizontal rails (categories, order-again) scroll without a visible bar. */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Respect a reduced-motion preference across every animated element. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

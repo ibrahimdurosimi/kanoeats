@@ -3,35 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KanoEats</title>
-    <script>
-      (function() {
-        var originalFetch = window.fetch;
-        var customFetch = null;
-        function setup(obj) {
-          try {
-            Object.defineProperty(obj, 'fetch', {
-              get: function() {
-                return customFetch || originalFetch;
-              },
-              set: function(val) {
-                customFetch = val;
-              },
-              configurable: true,
-              enumerable: true
-            });
-          } catch (e) {
-            console.warn("Could not patch fetch on target:", e);
-          }
-        }
-        if (typeof window !== 'undefined') setup(window);
-        if (typeof globalThis !== 'undefined') setup(globalThis);
-      })();
-    </script>
+    <meta name="theme-color" content="#0A2E24" />
+    <meta
+      name="description"
+      content="KanoEats — authentic Northern Nigerian food delivered hot. Tsire suya, masa, tuwo shinkafa and kunun aya from verified halal Arewa kitchens in Kano."
+    />
+    <title>KanoEats — Arewa kitchens, delivered hot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..800&family=Archivo:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
