@@ -12,6 +12,8 @@ export interface Dish {
   artKey: ArtKey;
   /** 0 = not spicy, 3 = wuta. */
   spiceLevel: number;
+  /** Owner-controlled. Absent on local data, where everything is available. */
+  isAvailable?: boolean;
 }
 
 export interface Restaurant {
@@ -108,6 +110,61 @@ export interface Order {
   scheduledFor: string | null;
   createdAt: string;
   items: OrderItem[];
+}
+
+export interface Review {
+  id: string;
+  orderId: string;
+  restaurantId: string;
+  userId: string;
+  /** 1–5. */
+  rating: number;
+  comment: string;
+  createdAt: string;
+  /** Display name of the reviewer, when the join returned one. */
+  authorName?: string;
+}
+
+export const CATERING_OCCASIONS = [
+  'Wedding fatiha',
+  'Naming ceremony',
+  'Sallah gathering',
+  'Corporate lunch',
+  'Ramadan iftar',
+  'Birthday',
+  'Other',
+] as const;
+
+export type CateringOccasion = (typeof CATERING_OCCASIONS)[number];
+
+export type CateringStatus = 'new' | 'contacted' | 'quoted' | 'won' | 'lost';
+
+export interface CateringRequest {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  occasion: string;
+  eventDate: string | null;
+  guestCount: number;
+  city: string;
+  notes: string;
+  status: CateringStatus;
+  createdAt: string;
+}
+
+/** Fields a customer fills in on the catering form. */
+export type CateringRequestInput = Omit<CateringRequest, 'id' | 'status' | 'createdAt'>;
+
+/** Fields an owner may change on a dish. */
+export interface DishInput {
+  name: string;
+  description: string;
+  price: number;
+  category: DishCategory;
+  artKey: ArtKey;
+  spiceLevel: number;
+  isAvailable: boolean;
 }
 
 /** Add-ons offered on every dish. Priced in whole naira. */

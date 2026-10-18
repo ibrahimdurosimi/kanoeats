@@ -1,11 +1,13 @@
 import { ArrowLeft, BadgeCheck, Clock, MapPin, Search, ShoppingCart, Star } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import DishArt, { ART_BG } from '../components/DishArt';
 import DishModal from '../components/DishModal';
+import ReviewList from '../components/ReviewList';
 import { useRestaurant } from '../hooks/useRestaurants';
+import { fetchReviews } from '../lib/api';
 import { formatNaira } from '../lib/format';
-import type { Dish, DishCategory } from '../types';
+import type { Dish, DishCategory, Review } from '../types';
 
 const TABS: ('All' | DishCategory)[] = ['All', 'Starters', 'Mains', 'Drinks', 'Snacks'];
 
@@ -17,6 +19,20 @@ export default function RestaurantPage() {
   const [tab, setTab] = useState<'All' | DishCategory>('All');
   const [dishQuery, setDishQuery] = useState('');
   const [openDish, setOpenDish] = useState<Dish | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!restaurantId) return;
+    let active = true;
+    setReviewsLoading(true);
+    void fetchReviews(restaurantId)
+      .then((r) => active && setReviews(r))
+      .finally(() => active && setReviewsLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [restaurantId]);
 
   const dishes = useMemo(() => {
     if (!restaurant) return [];
@@ -209,6 +225,14 @@ export default function RestaurantPage() {
           ))
         )}
       </div>
+
+      {/* ---------- Reviews ---------- */}
+      <section className="mt-14">
+        <h2 className="mb-5 font-display text-[22px] font-bold text-[#0A2E24]">
+          What customers say
+        </h2>
+        <ReviewList reviews={reviews} loading={reviewsLoading} />
+      </section>
 
       <DishModal
         dish={openDish}

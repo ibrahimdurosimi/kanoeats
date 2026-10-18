@@ -69,7 +69,7 @@ export default function LandingPage() {
           <nav className="ml-auto hidden gap-7 text-[14.5px] font-medium text-[#33463D] md:flex">
             <Link to="/how-it-works" className="transition hover:text-[#14201B]">How it works</Link>
             <a href="#kitchens" className="transition hover:text-[#14201B]">Kitchens</a>
-            <a href="#catering" className="transition hover:text-[#14201B]">Catering</a>
+            <Link to="/catering" className="transition hover:text-[#14201B]">Catering</Link>
             <a href="#coverage" className="transition hover:text-[#14201B]">Coverage</a>
           </nav>
           <div className="ml-auto flex items-center gap-2.5 md:ml-0">
