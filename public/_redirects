@@ -1,0 +1,9 @@
+# SPA fallback for Cloudflare Pages.
+#
+# Workers reads not_found_handling from wrangler.jsonc instead, so this file
+# only matters on Pages. Keeping both means either hosting route works without
+# further changes.
+#
+# Without it, any deep link — /kitchens/kano-suya-palace, /orders/KE-ABC123 —
+# 404s on refresh or when shared, because no such file exists on disk.
+/*    /index.html   200

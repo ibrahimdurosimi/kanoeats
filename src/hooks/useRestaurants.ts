@@ -1,74 +1,62 @@
-import { useState, useEffect } from 'react';
-import { Restaurant } from '../types';
-import { supabase } from '../lib/supabase';
-import { RESTAURANTS as FALLBACK_RESTAURANTS } from '../data';
+import { useEffect, useState } from 'react';
+import { RESTAURANTS as LOCAL_RESTAURANTS } from '../data';
+import { fetchRestaurants } from '../lib/api';
+import { IS_SUPABASE_CONFIGURED } from '../lib/config';
+import type { RestaurantWithMenu } from '../types';
 
-let cachedRestaurants: Restaurant[] | null = null;
+type MenuState = { restaurants: RestaurantWithMenu[]; source: 'supabase' | 'local' };
+
+/**
+ * Module-level cache. Menus change rarely and this data backs several routes,
+ * so refetching on every navigation would be wasteful on a mobile connection.
+ *
+ * With no Supabase project the local menu is the final answer, so seed the
+ * cache synchronously — otherwise every page flashes a skeleton while an
+ * effect resolves data that was already in the bundle.
+ */
+let cache: MenuState | null = IS_SUPABASE_CONFIGURED
+  ? null
+  : { restaurants: LOCAL_RESTAURANTS, source: 'local' };
 
 export function useRestaurants() {
-  const [restaurants, setRestaurants] = useState<Restaurant[]>(cachedRestaurants || FALLBACK_RESTAURANTS);
-  const [loading, setLoading] = useState(!cachedRestaurants);
+  const [state, setState] = useState(cache);
+  const [loading, setLoading] = useState(!cache);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (cachedRestaurants) {
-      setLoading(false);
-      return;
-    }
+    if (cache) return;
 
-    async function fetchRestaurants() {
-      try {
-        const { data: restaurantsData, error: restError } = await supabase.from('restaurants').select('*');
-        if (restError || !restaurantsData || restaurantsData.length === 0) {
-          console.warn('Supabase fetch failed or empty, using fallback data:', restError);
-          setRestaurants(FALLBACK_RESTAURANTS);
-          setLoading(false);
-          return;
-        }
+    let active = true;
+    fetchRestaurants()
+      .then((result) => {
+        cache = result;
+        if (active) setState(result);
+      })
+      .catch((e: unknown) => {
+        if (active) setError(e instanceof Error ? e.message : 'Could not load kitchens');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
 
-        const { data: dishesData, error: dishError } = await supabase.from('dishes').select('*');
-        if (dishError) {
-          console.warn('Supabase dishes fetch failed, using fallback data:', dishError);
-          setRestaurants(FALLBACK_RESTAURANTS);
-          setLoading(false);
-          return;
-        }
-
-        const formattedData: Restaurant[] = restaurantsData.map(r => ({
-          id: r.id,
-          name: r.name,
-          cuisine: r.cuisine,
-          rating: Number(r.rating),
-          deliveryTime: r.delivery_time,
-          tags: r.tags || [],
-          logoText: r.logo_text,
-          address: r.address,
-          opens: r.opens,
-          closes: r.closes,
-          image: r.image,
-          dishes: dishesData
-            .filter(d => d.restaurant_id === r.id)
-            .map(d => ({
-              id: d.id,
-              name: d.name,
-              description: d.description,
-              price: d.price,
-              image: d.image,
-              category: d.category as any
-            }))
-        }));
-
-        cachedRestaurants = formattedData;
-        setRestaurants(formattedData);
-      } catch (e) {
-        console.warn('Error fetching from Supabase, using fallback', e);
-        setRestaurants(FALLBACK_RESTAURANTS);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchRestaurants();
+    return () => {
+      active = false;
+    };
   }, []);
 
-  return { restaurants, loading };
+  return {
+    restaurants: state?.restaurants ?? [],
+    source: state?.source ?? 'local',
+    loading,
+    error,
+  };
+}
+
+export function useRestaurant(id: string | undefined) {
+  const { restaurants, loading, error } = useRestaurants();
+  return {
+    restaurant: id ? restaurants.find((r) => r.id === id) ?? null : null,
+    loading,
+    error,
+  };
 }

@@ -6,3 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+test/.build/
+
+# Wrangler local runtime state (miniflare caches, local D1/KV/R2)
+.wrangler/
+# Local Cloudflare secrets for `wrangler dev`
+.dev.vars

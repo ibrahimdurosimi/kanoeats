@@ -1,18 +1,14 @@
-import React from 'react';
+import Avatar from '../Avatar';
 
 const KITCHENS = [
   {
     name: 'Hajiya Amina',
     restaurant: 'Gidan Arewa',
-    image: 'https://images.unsplash.com/photo-1574484284002-952d92456975?auto=format&fit=crop&w=400&q=80', // Replace with a better portrait if available, but a food prep or warm portrait works. Let's use a nice chef portrait.
-    portrait: 'https://images.unsplash.com/photo-1589156280159-27698a70f29e?auto=format&fit=crop&w=400&q=80',
     story: "Bringing her grandmother's ancient Masa recipes from Kano to the modern tables of Kano. Every batch is fermented for 12 hours for that perfect fluffy center."
   },
   {
     name: 'Mallam Sani',
     restaurant: 'Kano Suya Palace',
-    image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
-    portrait: 'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=400&q=80',
     story: "A third-generation Suya master. Sani's signature Yaji spice blend is a closely guarded family secret, roasted fresh over charcoal every single evening."
   }
 ];
@@ -34,12 +30,7 @@ export default function MeetTheKitchens() {
           {KITCHENS.map((kitchen, idx) => (
             <div key={idx} className="group relative flex flex-col md:flex-row gap-6 items-center">
               <div className="w-48 h-48 sm:w-56 sm:h-56 shrink-0 relative rounded-full overflow-hidden border-4 border-white shadow-xl group-hover:scale-105 transition-transform duration-500 z-10">
-                <img 
-                  src={kitchen.portrait} 
-                  alt={kitchen.name} 
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-500"
-                />
+                <Avatar name={kitchen.name} className="w-full h-full" />
               </div>
               
               <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-[#eddcd2] flex-1 relative md:-ml-12 md:pl-16 w-full group-hover:shadow-lg transition-shadow duration-300">

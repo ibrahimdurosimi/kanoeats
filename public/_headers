@@ -1,0 +1,22 @@
+# Cloudflare headers.
+#
+# Read by Pages directly. On Workers, static-asset headers are configured in
+# the dashboard or via a Worker script — this file documents the intent either
+# way, and applies as-is if you deploy to Pages.
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=(self)
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+# Vite fingerprints these filenames, so a changed file gets a new URL.
+# Caching them for a year is safe and keeps repeat visits cheap on mobile data.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The entry point must never be cached, or a deploy will not reach anyone
+# holding a stale copy.
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate

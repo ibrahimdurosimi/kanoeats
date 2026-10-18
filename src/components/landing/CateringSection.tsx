@@ -1,4 +1,4 @@
-import React from 'react';
+import DishArt from '../DishArt';
 import { Calendar, Users, HeartHandshake } from 'lucide-react';
 
 export default function CateringSection() {
@@ -50,12 +50,9 @@ export default function CateringSection() {
         </div>
         
         <div className="relative h-[400px] lg:h-[550px] w-full rounded-[40px] overflow-hidden shadow-2xl border-4 border-white/20">
-          <img 
-            src="https://images.unsplash.com/photo-1574484284002-952d92456975?auto=format&fit=crop&w=800&q=80" 
-            alt="Beautifully catered event feast" 
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover"
-          />
+          <div className="w-full h-full grid place-items-center bg-gradient-to-br from-[#E9A93A] to-[#9A6318]">
+            <DishArt art="masa" className="w-2/3 h-2/3 max-w-[280px] max-h-[280px]" />
+          </div>
           <div className="absolute inset-0 bg-gradient-to-t from-[#b88c16]/80 to-transparent" />
           <div className="absolute bottom-8 left-8 right-8 text-white">
             <p className="text-2xl font-display font-bold italic">"KanoEats handled the food for our 300-guest Fatiha seamlessly."</p>

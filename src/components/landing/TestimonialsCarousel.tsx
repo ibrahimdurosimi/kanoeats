@@ -1,3 +1,4 @@
+import Avatar from '../Avatar';
 import React, { useState } from 'react';
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -9,7 +10,6 @@ const TESTIMONIALS = [
     role: 'Food Blogger',
     text: "The Tsire Suya from Kano Suya Palace is exactly how it tastes back home in Kano. The spices are authentic, and the delivery was incredibly fast. KanoEats is my new favorite app!",
     rating: 5,
-    image: 'https://images.unsplash.com/photo-1531123897727-8f129e1bfa82?auto=format&fit=crop&w=150&q=80'
   },
   {
     id: 2,
@@ -17,7 +17,6 @@ const TESTIMONIALS = [
     role: 'Event Organizer',
     text: "We ordered bulk Masa and Tuwo for a naming ceremony and the packaging was phenomenal. Everything arrived hot and fresh. The Amana delivery guarantee is real.",
     rating: 5,
-    image: 'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?auto=format&fit=crop&w=150&q=80'
   },
   {
     id: 3,
@@ -25,7 +24,6 @@ const TESTIMONIALS = [
     role: 'Regular Customer',
     text: "I crave Kunun Aya all the time, and Oasis Tigernut on this app delivers the best I've had in Kano. Smooth, chilled, and perfectly sweetened.",
     rating: 4.9,
-    image: 'https://images.unsplash.com/photo-1589156280159-27698a70f29e?auto=format&fit=crop&w=150&q=80'
   }
 ];
 
@@ -69,10 +67,9 @@ export default function TestimonialsCarousel() {
               </p>
               
               <div className="flex items-center justify-center space-x-4">
-                <img 
-                  src={TESTIMONIALS[currentIndex].image} 
-                  alt={TESTIMONIALS[currentIndex].name}
-                  className="h-16 w-16 rounded-full object-cover border-2 border-[#dfaf27]"
+                <Avatar
+                  name={TESTIMONIALS[currentIndex].name}
+                  className="h-16 w-16 rounded-full border-2 border-[#dfaf27]"
                 />
                 <div className="text-left">
                   <h4 className="text-white font-bold text-lg">{TESTIMONIALS[currentIndex].name}</h4>

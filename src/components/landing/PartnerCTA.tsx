@@ -1,4 +1,4 @@
-import React from 'react';
+import DishArt from '../DishArt';
 import { ArrowRight, Store } from 'lucide-react';
 
 export default function PartnerCTA() {
@@ -30,12 +30,9 @@ export default function PartnerCTA() {
 
         <div className="w-full md:w-5/12 relative z-10">
           <div className="aspect-[4/3] rounded-[32px] overflow-hidden shadow-2xl border-4 border-white rotate-3 hover:rotate-0 transition-transform duration-500">
-            <img 
-              src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80" 
-              alt="Restaurant owner smiling" 
-              referrerPolicy="no-referrer"
-              className="w-full h-full object-cover"
-            />
+            <div className="w-full h-full grid place-items-center bg-gradient-to-br from-[#0F4132] to-[#0A2E24]">
+              <DishArt art="kitchen" className="w-1/2 h-1/2 max-w-[200px] max-h-[200px]" />
+            </div>
           </div>
         </div>
 
