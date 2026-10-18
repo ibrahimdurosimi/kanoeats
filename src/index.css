@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Fraunces", serif;
+  
+  --color-brand-terracotta: #c64c38;
+  --color-brand-saffron: #f2a640;
+  --color-brand-charcoal: #2a2b2a;
+  --color-brand-forest: #1e3f32;
+  --color-brand-sand: #f5f0e6;
+  --color-brand-sand-dark: #e8dfd5;
+  
+  --color-kanoeats-primary: var(--color-brand-terracotta);
+  --color-kanoeats-bg: var(--color-brand-sand);
+}
+
+/* Custom scrollbar to keep layout clean */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-brand-sand-dark);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d4c0b4;
+}
+.hide-scrollbar::-webkit-scrollbar { display: none; } 
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

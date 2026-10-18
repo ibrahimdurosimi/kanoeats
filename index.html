@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KanoEats</title>
+    <script>
+      (function() {
+        var originalFetch = window.fetch;
+        var customFetch = null;
+        function setup(obj) {
+          try {
+            Object.defineProperty(obj, 'fetch', {
+              get: function() {
+                return customFetch || originalFetch;
+              },
+              set: function(val) {
+                customFetch = val;
+              },
+              configurable: true,
+              enumerable: true
+            });
+          } catch (e) {
+            console.warn("Could not patch fetch on target:", e);
+          }
+        }
+        if (typeof window !== 'undefined') setup(window);
+        if (typeof globalThis !== 'undefined') setup(globalThis);
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
