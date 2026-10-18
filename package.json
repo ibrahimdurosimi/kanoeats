@@ -9,6 +9,8 @@
     "build": "vite build",
     "start": "vite preview --host --port 3000",
     "preview": "vite preview",
+    "cf:preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "test": "vite build --config test/vite.ssr.config.mjs && node test/smoke.mjs",
@@ -32,6 +34,7 @@
     "autoprefixer": "^10.4.21",
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.2",
-    "vite": "^6.2.3"
+    "vite": "^6.2.3",
+    "wrangler": "^4.151.1"
   }
 }

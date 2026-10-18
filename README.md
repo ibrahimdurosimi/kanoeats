@@ -87,7 +87,79 @@ a refresh or a duplicate callback cannot double-process an order.
 | `npm run dev` | Dev server with hot reload on port 5173 |
 | `npm run build` | Production build to `dist/` |
 | `npm run start` | Serve the production build on port 3000 |
+| `npm run cf:preview` | Build, then serve on the Cloudflare Workers runtime locally |
+| `npm run deploy` | Build and deploy to Cloudflare Workers |
 | `npm run lint` | TypeScript check, no emit |
+| `npm test` | Render every page server-side and assert on the markup |
+| `npm run verify` | lint + build + test |
+
+---
+
+## Deployment (Cloudflare)
+
+### Option A — connect the repo (recommended for previews)
+
+In the Cloudflare dashboard, create a Worker (or Pages project) from this
+GitHub repo and set:
+
+| Setting | Value |
+| --- | --- |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Node version | 20 or later |
+
+Every push then gets its own preview URL, and the production branch deploys
+automatically.
+
+### Option B — deploy from your machine
+
+```bash
+npx wrangler login
+npm run deploy
+```
+
+`wrangler.jsonc` holds the configuration. To check it on the real Workers
+runtime before shipping:
+
+```bash
+npm run cf:preview
+```
+
+### Environment variables
+
+Add these in the Cloudflare dashboard under the project's **Variables and
+Secrets**, for both production and preview:
+
+```
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+VITE_PAYSTACK_PUBLIC_KEY
+```
+
+They are read at **build** time, not run time, so changing one requires a
+redeploy to take effect.
+
+With none of them set the deploy still works — you get a browsable site
+running on the local menu data, which is enough for a design preview. Sign-in
+and checkout will tell the user they are unavailable rather than failing
+silently.
+
+`PAYSTACK_SECRET_KEY` does **not** belong here. It goes to Supabase
+(`supabase secrets set`), because every `VITE_`-prefixed variable is compiled
+into the browser bundle.
+
+### Why SPA fallback matters
+
+`not_found_handling: "single-page-application"` in `wrangler.jsonc` (and
+`public/_redirects` for Pages) returns `index.html` for any path that is not a
+real file. Without it, `/kitchens/kano-suya-palace` 404s on refresh and on any
+shared link — the site works only for people who enter through the home page.
+
+One consequence worth knowing: a missing asset also returns `index.html` with
+a 200 rather than a 404. After a redeploy, a tab left open may request a code
+chunk that no longer exists and receive HTML where it expects JavaScript.
+`ErrorBoundary` detects that specific failure and reloads onto the new
+version, once, rather than showing a cryptic MIME-type error.
 
 ---
 

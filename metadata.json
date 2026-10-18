@@ -1,6 +1,0 @@
-{
-  "name": "KanoEats",
-  "description": "A beautiful, fully-interactive food discovery and delivery web application with dashboard, checkout, landing, and restaurant details screens.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

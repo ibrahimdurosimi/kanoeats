@@ -1,0 +1,26 @@
+{
+  // Cloudflare Workers static-asset hosting for the KanoEats SPA.
+  //
+  // Deploy:  npm run deploy          (first run prompts a `wrangler login`)
+  // Preview: npm run cf:preview      (serves the built app locally on Workers runtime)
+  //
+  // Connecting the GitHub repo in the Cloudflare dashboard works too — see the
+  // Deployment section of README.md. Either route uses this file.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kanoeats",
+  "compatibility_date": "2026-10-18",
+
+  "assets": {
+    "directory": "./dist",
+
+    // Any path that is not a real file returns index.html with a 200 so React
+    // Router handles it. Without this, /kitchens/kano-suya-palace 404s on
+    // refresh and on any shared link — the whole app looks broken to anyone
+    // who does not enter through the home page.
+    "not_found_handling": "single-page-application"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}
